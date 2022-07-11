@@ -1,3 +1,5 @@
+# Copyright (c) 2022 Aiven, Helsinki, Finland. https://aiven.io
+
 import psycopg2
 import psycopg2.extras
 from psycopg2 import Error

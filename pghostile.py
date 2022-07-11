@@ -1,3 +1,5 @@
+# Copyright (c) 2022 Aiven, Helsinki, Finland. https://aiven.io
+
 import sys
 import os
 import argparse

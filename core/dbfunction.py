@@ -1,3 +1,5 @@
+# Copyright (c) 2022 Aiven, Helsinki, Finland. https://aiven.io
+
 from core.utils import convert_rettype, pgtype_get_names_map, get_test_value_for_type
 
 

@@ -1,3 +1,5 @@
+# Copyright (c) 2022 Aiven, Helsinki, Finland. https://aiven.io
+
 from core.pg_types import PG_TYPES
 
 
