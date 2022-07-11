@@ -1,15 +1,14 @@
 # PGHOSTILE
 Pghostile can make PostgreSQL an hostile environment for superusers and a funny playground for attackers.  
-Pghostile is a automated tool for overriding "system" functions (the ones from the 'pg_catalog' schema) allowing an attacker to elevate privileges if/when these functions are called by a superuser.
+Pghostile is a automated tool for overriding "system" functions (the ones from the 'pg_catalog' schema) allowing an attacker to elevate privileges if/when these functions are called by a superuser.  
 
-
-It can be also used to test the security of the PostgreSQL extension. You can run pghostile to create the "exploit functions" and then run the extension's own unit tests and see if your user got superuser power after that.
+It can be also used to test the security of the PostgreSQL extension. You can run pghostile to create the "exploit functions" and then run the extension's unit tests and see if you get superuser power after that.
 
 ## How it works
-In PostgreSQL every function is identified by it's name plus the number/types of arguments (like in Java). If a function is defined to accept a numberic value and you define a function with the same name that accepts an integer you function will be called if the input parameter is an integer and the original one will be called if the input is a float.  
-Considering that an unprivileged user can create functions in the public schema and that the public schema is part of the 'search_path', it's relatively easy to trick a superuser to run code from public instead of pg_catalog.
+In PostgreSQL every function is identified by it's name plus the number/types of arguments (like in Java). If a function is defined to accept a numberic value and you define a function with the same name that accepts an integer, your function will be called if the input parameter is an integer and the original one will be called if the input is a float.  
+Considering that an unprivileged user can create functions in the public schema and that the public schema is part of the 'search_path', it's relatively easy to trick a superuser to run code from public instead of pg_catalog.  
 
-In a few words, pghostile searches pg_catalog for functions that can be overridden and creates a malicious wrapper of them in the public schema.
+In a few words, pghostile searches pg_catalog for functions that can be overridden and creates a malicious wrapper of them in the public schema.  
 
 Currently, it can identify ~150 functions/parameters combinations that can lead to privilege escalation. To give an example, the list below contains some of these functions:
 ```SQL
@@ -82,5 +81,3 @@ Starting ...
 150 exploitable functions and params combinations have been tested!
 The './out' folder contains the output
 ```
-
-
