@@ -1,0 +1,38 @@
+[MASTER]
+#load-plugins=pylint_quotes
+
+#string-quote=double-avoid-escape
+#triple-quote=double
+#docstring-quote=double
+
+[MESSAGES CONTROL]
+disable=
+    #invalid-string-quote,
+    wrong-import-order,
+    invalid-name,
+    missing-function-docstring,
+    missing-module-docstring,
+    missing-class-docstring,
+    too-many-locals,
+    too-many-branches,
+    too-few-public-methods,
+    too-many-statements,
+    too-many-public-methods,
+    fixme,
+    raise-missing-from,
+    too-many-instance-attributes,
+    R0801,  # Similar lines in 2 files
+    R0201,
+    import-error
+
+[FORMAT]
+max-line-length=127
+
+[REPORTS]
+output-format=text
+reports=no
+score=no
+
+[TYPECHECK]
+ignored-classes=PurePath,responses,googleapiclient.discovery.Resource
+extension-pkg-whitelist=cassandra.cluster,cassandra.metadata,cassandra.query,pydantic,zstd,ujson
