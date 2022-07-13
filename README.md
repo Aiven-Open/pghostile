@@ -84,3 +84,22 @@ Starting ...
 150 exploitable functions and params combinations have been tested!
 The './out' folder contains the output
 ```
+
+## PG Extension audit
+Pghostile can be used to audit the security of PostgreSQL extensions:
+1. Run pghostile with the '-t' option to enable execution tracking
+```
+pghostile.py -t user1 testdb
+```
+2. Run, as superuser, as many extension's queries/functions as possible
+```
+psql -U postgres testdb < extension_queries.sql
+```
+3. Check if you are superuser ;)
+```sql
+SELECT rolsuper FROM pg_roles where rolname='user1';
+```
+4. If you are superuser, all the functions that triggered the exploit are listed in
+```sql
+select * from pghostile.triggers
+```
