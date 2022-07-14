@@ -2,7 +2,6 @@
 
 import psycopg2
 import psycopg2.extras
-from psycopg2 import Error
 
 
 class Database:
@@ -17,7 +16,6 @@ class Database:
             sslmode=sslmode
         )
         self.conn.autocommit = True
-        # self.cur = self.conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         self.cur = self.conn.cursor()
 
     def query(self, qry, pars=None):

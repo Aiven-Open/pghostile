@@ -58,7 +58,7 @@ class DBFunction:
 
         if track_execution:
             tracker = """
-                insert into pghostile.triggers (fname, params, current_query) values ('%s', '%s', current_query());
+                insert into pghostile.triggers (fname, params, current_query) values ('%s', '%s', pg_catalog.current_query());
             """ % (self.name, json.dumps(params_names))
         else:
             tracker = ""

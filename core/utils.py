@@ -58,7 +58,9 @@ def get_convertion_matrix():
         17: [25],  # bytea -> text,
         1082: [25],  # date -> text (yes, text has precedence over date ;))
         1114: [25],  # timestamp -> text
+        1184: [25],  # timestamptz -> text
         1083: [25],  # time -> text
+        1266: [25],  # timetz -> text
         # @TODO add more date types
         114: [25],  # json -> text,
         142: [25],  # xml -> text
