@@ -1,6 +1,12 @@
 # Copyright (c) 2022 Aiven, Helsinki, Finland. https://aiven.io
 
-#----------------------------------------------------------------------
+# This file has been taken (and converted to python) from PostgreSQL
+# source code (src/include/catalog/pg_type.dat).
+# It's identical to the originl file EXECPT for oid=18, the typname
+# has to be "char", between quotes.
+
+
+# ----------------------------------------------------------------------
 #
 # pg_type.dat
 #    Initial contents of the pg_type system catalog.
@@ -10,7 +16,7 @@
 #
 # src/include/catalog/pg_type.dat
 #
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 
 
 # For types used in the system catalogs, make sure the values here match
@@ -44,7 +50,8 @@ PG_TYPES = [
     "typinput": "byteain", "typoutput": "byteaout", "typreceive": "bytearecv",
     "typsend": "byteasend", "typalign": "i", "typstorage": "x" },
 { "oid": "18", "array_type_oid": "1002", "descr": "single character",
-    "typname": "char", "typlen": "1", "typbyval": "t", "typcategory": "Z",
+    "typname": '"char"',  # note the quotes, it's "char"
+    "typlen": "1", "typbyval": "t", "typcategory": "Z",
     "typinput": "charin", "typoutput": "charout", "typreceive": "charrecv",
     "typsend": "charsend", "typalign": "c" },
 { "oid": "19", "array_type_oid": "1003",

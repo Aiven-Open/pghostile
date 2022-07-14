@@ -54,7 +54,8 @@ def get_convertion_matrix():
         2276: [23, 700, 25],  # any -> integer or float or text
         2277: [1007, 1021, 1009],  # anyarray -> int or float or or text array
         1043: [25],  # varchar -> text
-        18: [25],  # char -> text
+        1042: [25],  # char(n) -> text
+        18: [25],  # "char" -> text
         17: [25],  # bytea -> text,
         1082: [25],  # date -> text (yes, text has precedence over date ;))
         1114: [25],  # timestamp -> text

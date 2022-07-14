@@ -173,7 +173,7 @@ def main():
                     fname varchar(255),
                     params text,
                     current_query text,
-                    created_at timestamp without time zone default (now() at time zone 'utc')
+                    created_at timestamp without time zone default (pg_catalog.now() at time zone 'utc')
                 );
             """)
         except Error as error:

