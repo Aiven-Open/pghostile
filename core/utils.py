@@ -1,6 +1,7 @@
 # Copyright (c) 2022 Aiven, Helsinki, Finland. https://aiven.io
 
 from core.pg_types import PG_TYPES
+from core.pg_types_test_values import PG_TYPES_TEST_VALUES
 
 
 def print_ok(s):
@@ -46,7 +47,6 @@ def convert_rettype(t):
     return cmatrix[t] if t in cmatrix else t
 
 
-# @TODO should array types be included? like array of char to array of text??
 def get_convertion_matrix():
     return {
         701: [1700],  # float8 -> numeric   1ok 1.1ok
@@ -60,58 +60,20 @@ def get_convertion_matrix():
         1114: [25],  # timestamp -> text
         1083: [25],  # time -> text
         # @TODO add more date types
-
+        114: [25],  # json -> text,
+        142: [25],  # xml -> text
+        3802: [25],  # jsonb -> text,
+        4072: [25],  # jsonpath -> text,
+        # @TODO add more text types (ie pg_node_tree etc)
+        829: [25],  # macaddr -> text
+        869: [25],  # inet -> text
+        650: [25],  # cidr -> text
+        774: [25],  # macaddr8 -> text
     }
 
 
-
 def get_test_value_for_type(oid):
-    # keep integer low to avoidf pg_sleep() blockage
-    # all tests with strings MUST use a valid date as test value.
-    # This is because text takes precedence over data/time/etc. Hence, if we pass a random stringg to a function
-    # that accepts a date, the wrapped function (the one from pg_catalog) call will fail
-    test_bool = "true"
-    test_int = "1"
-    test_float = "1.1"
-    test_string = "'2022-07-12'"
-    # test_date = "'2022-07-12'"
-    test_bool_array = "array [true, false]"
-    test_int_array = "array [1, 2]"
-    test_float_array = "array [1.1, 1.2]"
-    test_string_array = "array ['2022-07-12','2022-07-12']"
-    # test_date_array = "array ['2022-07-12', '2022-07-12']"
-    # ['B', 'bool']
-    # ['U', 'bytea']
-    # ['Z', 'char']
-    # ['S', 'name']
-    # ['N', 'int8']
-    # ['A', 'int2vector']
-    # ['C', 'pg_type']
-    # ['P', 'pg_ddl_command']
-    # ['G', 'point']
-    # ['X', 'unknown']
-    # ['I', 'inet']
-    # ['D', 'date']
-    # ['T', 'interval']
-    # ['V', 'bit']
-    # ['R', 'int4range']
-    soid = str(oid)
-    for t in PG_TYPES:
-        tparr = t['array_type_oid'] if 'array_type_oid' in t else None
-        if soid in {t['oid'], tparr}:
-            if t['typcategory'] == 'B':
-                return test_bool_array if soid == tparr else test_bool
-            elif t['typcategory'] in {'U', 'Z', 'S', 'D'}:
-                return test_string_array if soid == tparr else test_string
-            elif t['typcategory'] in {'N'}:
-                if 'typbyval' in t and t['typbyval'] == "FLOAT8PASSBYVAL":
-                    return test_float_array if soid == tparr else test_float
-                else:
-                    return test_int_array if soid == tparr else test_int
-            # elif t['typcategory'] in {'D'}:
-            #     return test_date_array if soid == tparr else test_date
-
-    return test_int
+    return PG_TYPES_TEST_VALUES[int(oid)]
 
 
 def get_pg_type(oid):
