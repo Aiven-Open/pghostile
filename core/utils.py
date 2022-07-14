@@ -46,6 +46,7 @@ def convert_rettype(t):
     return cmatrix[t] if t in cmatrix else t
 
 
+# @TODO should array types be included? like array of char to array of text??
 def get_convertion_matrix():
     return {
         701: [1700],  # float8 -> numeric   1ok 1.1ok
@@ -54,21 +55,31 @@ def get_convertion_matrix():
         2277: [1007, 1021, 1009],  # anyarray -> int or float or or text array
         1043: [25],  # varchar -> text
         18: [25],  # char -> text
-        17: [25],  # bytea -> text
+        17: [25],  # bytea -> text,
+        1082: [25],  # date -> text (yes, text has precedence over date ;))
+        1114: [25],  # timestamp -> text
+        1083: [25],  # time -> text
+        # @TODO add more date types
+
     }
+
 
 
 def get_test_value_for_type(oid):
     # keep integer low to avoidf pg_sleep() blockage
+    # all tests with strings MUST use a valid date as test value.
+    # This is because text takes precedence over data/time/etc. Hence, if we pass a random stringg to a function
+    # that accepts a date, the wrapped function (the one from pg_catalog) call will fail
     test_bool = "true"
     test_int = "1"
     test_float = "1.1"
-    test_string = "'a'"
+    test_string = "'2022-07-12'"
+    # test_date = "'2022-07-12'"
     test_bool_array = "array [true, false]"
     test_int_array = "array [1, 2]"
     test_float_array = "array [1.1, 1.2]"
-    test_string_array = "array ['a','a']"
-
+    test_string_array = "array ['2022-07-12','2022-07-12']"
+    # test_date_array = "array ['2022-07-12', '2022-07-12']"
     # ['B', 'bool']
     # ['U', 'bytea']
     # ['Z', 'char']
@@ -90,13 +101,15 @@ def get_test_value_for_type(oid):
         if soid in {t['oid'], tparr}:
             if t['typcategory'] == 'B':
                 return test_bool_array if soid == tparr else test_bool
-            elif t['typcategory'] in {'U', 'Z', 'S'}:
+            elif t['typcategory'] in {'U', 'Z', 'S', 'D'}:
                 return test_string_array if soid == tparr else test_string
             elif t['typcategory'] in {'N'}:
                 if 'typbyval' in t and t['typbyval'] == "FLOAT8PASSBYVAL":
                     return test_float_array if soid == tparr else test_float
                 else:
                     return test_int_array if soid == tparr else test_int
+            # elif t['typcategory'] in {'D'}:
+            #     return test_date_array if soid == tparr else test_date
 
     return test_int
 

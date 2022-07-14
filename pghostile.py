@@ -34,7 +34,8 @@ def make_it_hostile(db, exploit_payload, stealth_mode=False, create_exploit=True
             conv_types = convert_types(initial_types)
             for artype in conv_types:
                 df = DBFunction(record['name'], artype, initial_types, record['rettype'], exploit_payload, stealth_mode, track_execution)
-                defined_functions.append(df)
+                if df not in defined_functions:
+                    defined_functions.append(df)
         print("[ * ] %s interesting functions have been identified" % found_functions_cnt)
         errors = []
         if len(defined_functions) > 0:

@@ -1,6 +1,6 @@
 # PGHOSTILE
 Pghostile can make PostgreSQL an hostile environment for superusers and a nice playground for attackers.  
-Pghostile is a automated tool for overriding "system" functions (the ones from the 'pg_catalog' schema) allowing an attacker to elevate privileges if/when these functions are called by a superuser.  
+Pghostile is an automated tool for overriding "system" functions (the ones from the 'pg_catalog' schema) allowing an attacker to elevate privileges if/when these functions are called by a superuser.  
 
 It can be also used to test the security of the PostgreSQL extension. You can run pghostile to create the "exploit functions" and then run the extension's unit tests and see if you get superuser power after that.
 
@@ -10,7 +10,7 @@ Considering that an unprivileged user can create functions in the public schema 
 
 In a few words, pghostile searches pg_catalog for functions that can be overridden and creates a malicious wrapper of them in the public schema.  
 
-Currently, it can identify ~150 functions/parameters combinations that can lead to privilege escalation. To give an example, the list below contains some of these functions:
+Currently, it can identify ~230 functions/parameters combinations that can lead to privilege escalation. To give an example, the list below contains some of these functions:
 ```SQL
 select sha256('a');
 select byteaout('a');
@@ -64,7 +64,7 @@ optional arguments:
 With the -X option you can disable the actual exploit creation. It will just run the tests to see which functions can be overridden.  
 With the -T option you can disable the tests and just create the exploit functions.  
 The -x option allows you to specify what SQL command(s) should be used in your exploit. By default it's ```ALTER USER <db_username> WITH SUPERUSER;```.  
-The -s option disables the "stealth mode". In stealth mode the wrapping functions will call the original function from pg_catalog, in this way the superuser won't see any anomaly when calling a wrapped function.  
+The -s option disables the "stealth mode". In stealth mode the wrapping functions will call the original function from pg_catalog, in this way the superuser won't see any anomaly when calling a wrapped function. There are also less chances to break execution flows that could bring us to other vulnerable points.  
 The -t option enables the tracking of the execution of the exploit functions. It means that every successfull call of an exploit function is logged into a table of the current DB (pghostile.triggers). It's useful for extension analisys.  
 
 ### Example
@@ -95,7 +95,7 @@ pghostile.py -t user1 testdb
 ```
 psql -U postgres testdb < extension_queries.sql
 ```
-3. Check if you are superuser ;)
+3. Check if you are superuser
 ```sql
 SELECT rolsuper FROM pg_roles where rolname='user1';
 ```
