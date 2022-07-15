@@ -27,7 +27,10 @@ class DBFunction:
             params_names.append(tn)
             inargs.append(f"IN {argnames[i]} {tn}")
             rtypecast = pg_type_names[self.initial_params_type[i]]
-            callargs.append("%s%s" % (argnames[i], f"::{rtypecast}" if not rtypecast.startswith("any") else ""))
+            if rtypecast == "internal" or rtypecast.startswith("any"):
+                callargs.append(argnames[i])
+            else:
+                callargs.append("%s::%s" % (argnames[i], rtypecast))
             test_params.append(get_test_value_for_type(self.initial_params_type[i]))
         inargs = ", ".join(inargs)
         callargs = ", ".join(callargs)

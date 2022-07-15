@@ -41,7 +41,8 @@ def convert_rettype(t):
     cmatrix = {
         2281: 21,  # internal -> int4
         2275: 25,  # cstring -> text,
-        2283: 25   # anyelement -> text
+        2283: 25,   # anyelement -> text
+        2277: 1009,  # anyarray -> array of text
     }
 
     return cmatrix[t] if t in cmatrix else t
@@ -55,14 +56,14 @@ def get_convertion_matrix():
         2277: [1007, 1021, 1009],  # anyarray -> int or float or or text array
         1043: [25],  # varchar -> text
         1042: [25],  # char(n) -> text
-        18: [25],  # "char" -> text
+        18: [25],  # "char" (with quotes) -> text
         17: [25],  # bytea -> text,
+        19: [25],  # name -> text,
         1082: [25],  # date -> text (yes, text has precedence over date ;))
         1114: [25],  # timestamp -> text
         1184: [25],  # timestamptz -> text
         1083: [25],  # time -> text
         1266: [25],  # timetz -> text
-        # @TODO add more date types
         114: [25],  # json -> text,
         142: [25],  # xml -> text
         3802: [25],  # jsonb -> text,

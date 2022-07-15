@@ -1,6 +1,6 @@
 # Copyright (c) 2022 Aiven, Helsinki, Finland. https://aiven.io
 
-# keep integer low to avoidf pg_sleep() blockage
+# keep numbers low to avoid pg_sleep() blockage
 PG_TYPES_TEST_VALUES = {
     # bool: boolean, "true"/"false"
     16: "true",
@@ -10,7 +10,7 @@ PG_TYPES_TEST_VALUES = {
     17: "'randstr'",
     1001: "array ['randstr','randstr']",
 
-    # char: single character
+    # "char" (with quotes): single character
     18: "'r'",
     1002: "array ['r','r']",
 
@@ -350,7 +350,7 @@ PG_TYPES_TEST_VALUES = {
     2275: "1",
     1263: "1",
 
-    # any: pseudo-type representing any type, @TODO check
+    # any: pseudo-type representing any type
     2276: "1",
 
     # anyarray: pseudo-type representing a polymorphic array type

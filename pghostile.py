@@ -108,7 +108,7 @@ def make_it_hostile(db, exploit_payload, stealth_mode=False, create_exploit=True
                         if df.test_ok and df.test_query not in exploitables:
                             f.write(f"{df.test_query};\n")
                             exploitables.append(df.test_query)
-                    print_ok("%s exploitable functions and params combinations have been tested!" % len(exploitables))
+                    print_ok("%s exploitable function calls have been tested!" % len(exploitables))
                 else:
                     f.write("You need to run the tests to generate this file")
             print_ok(f"The '{out_dir}' folder contains the output")
