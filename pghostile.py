@@ -61,10 +61,10 @@ def make_it_hostile(db, exploit_payload, stealth_mode=False, create_exploit=True
                         continue
                     try:
                         # print("Testing %s" % df.test_query)
-                        db.query("drop function if exists public.___test_wrapper()")
+                        db.query("drop function if exists public.___pghostile_test_wrapper()")
                         db.query(df.test_query)
-                        db.query("select public.___test_wrapper()")
-                        db.query("drop function public.___test_wrapper()")
+                        db.query("select public.___pghostile_test_wrapper()")
+                        db.query("drop function public.___pghostile_test_wrapper()")
                         df.test_ok = True
                     except Exception:
                         pass

@@ -248,15 +248,15 @@ PG_TYPES_TEST_VALUES = {
     4089: "1",
     4090: "array [1, 2]",
 
-    # uuid: UUID datatype, @TODO check
-    2950: "'randstr'",
-    2951: "array ['randstr','randstr']",
+    # uuid: UUID datatype
+    2950: "'93967025-8c89-4320-ad51-4ef50694502f'",
+    2951: "array ['93967025-8c89-4320-ad51-4ef50694502f','93967025-8c89-4320-ad51-4ef50694502f']",
 
     # pg_lsn: PostgreSQL LSN datatype, @TODO check
     3220: "'randstr'",
     3221: "array ['randstr','randstr']",
 
-    # tsvector: text representation for text search, @TODO check
+    # tsvector: text representation for text search
     3614: "'randstr'",
     3643: "array ['randstr','randstr']",
 

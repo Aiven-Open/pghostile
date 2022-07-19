@@ -53,7 +53,19 @@ def get_convertion_matrix():
         701: [1700],  # float8 -> numeric   1ok 1.1ok
         1700: [23],  # numeric -> int4     1ok 1.1FAIL
         2276: [23, 700, 25],  # any -> integer or float or text
+        2283: [23, 700, 25],  # anyelement -> integer or float or text
+        5077: [23, 700, 25],  # anycompatible -> integer or float or text
         2277: [1007, 1021, 1009],  # anyarray -> int or float or or text array
+        26: [23],  # oid -> int4
+        27: [25],  # tid -> text
+        28: [25],  # xid -> text
+        29: [25],  # cid -> text
+        2950: [25],  # UID -> text
+        3614: [25],  # tsvector -> text
+        3642: [25],  # gtsvector -> text
+        3615: [25],  # tsquery -> text
+        3734: [25],  # regconfig -> text
+        3769: [25],  # regdictionary -> text
         1043: [25],  # varchar -> text
         1042: [25],  # char(n) -> text
         18: [25],  # "char" (with quotes) -> text

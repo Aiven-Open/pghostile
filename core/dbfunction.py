@@ -27,6 +27,7 @@ class DBFunction:
             params_names.append(tn)
             inargs.append(f"IN {argnames[i]} {tn}")
             rtypecast = pg_type_names[self.initial_params_type[i]]
+            # do not cast internal or the 'any' types
             if rtypecast == "internal" or rtypecast.startswith("any"):
                 callargs.append(argnames[i])
             else:
@@ -66,7 +67,7 @@ class DBFunction:
         else:
             tracker = ""
 
-        self.create_query_test = base_qry % ("", "create function public.___test_wrapper() returns integer as 'select 1' language sql;")
+        self.create_query_test = base_qry % ("", "create function public.___pghostile_test_wrapper() returns integer as 'select 1' language sql;")
         self.create_query_exploit = base_qry % (tracker, self.exploit_payload)
 
     def __str__(self):

