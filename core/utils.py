@@ -2,6 +2,8 @@
 
 from core.pg_types import PG_TYPES
 from core.pg_types_test_values import PG_TYPES_TEST_VALUES
+from core.constants import Constants
+from core.dbfunction import DBFunction
 
 
 def print_ok(s):
@@ -10,6 +12,10 @@ def print_ok(s):
 
 def print_err(s):
     print(f"\x1b[1;31m{s}\x1b[0m")
+
+
+def print_warn(s):
+    print(f"\x1b[1;33m{s}\x1b[0m")
 
 
 def convert_types(types):
@@ -114,4 +120,25 @@ def pgtype_get_names_map():
             pg_type_names[int(t['array_type_oid'])] = f"{t['typname']} ARRAY"
 
     return pg_type_names
+
+
+def get_candidate_functions(db):
+    defined_functions = []
+
+    argtypes_filter = [f"{oid} = any(p.proargtypes)" for oid in get_convertion_matrix().keys()]
+    qry = """
+        SELECT p.oid as oid, n.nspname as ns, p.proname as name, p.pronargs as nargs, p.proargtypes as argtypes, p.prorettype as rettype
+        FROM pg_catalog.pg_namespace n JOIN pg_catalog.pg_proc p ON p.pronamespace = n.oid
+        WHERE p.prokind = 'f' and p.pronargs > 0 and n.nspname = '%s' and (
+            %s
+        )
+    """ % (Constants.SOURCE_SCHEMA, " or ".join(argtypes_filter))
+
+    res = db.query(qry)
+
+    for row in res.fetchall():
+        initial_types = [int(i) for i in row['argtypes'].split()]
+        df = DBFunction(db, row['oid'], row['name'], initial_types, row['rettype'])
+        defined_functions.append(df)
+    return defined_functions
 

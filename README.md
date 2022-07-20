@@ -60,6 +60,7 @@ optional arguments:
                         The SQL commands
   -t, --track-execution
                         Track the exploit function execution
+  -O, --no-overwrite    Stop execution if at least one exploit function already exists
 ```
 
 With the -X option you can disable the actual exploit creation. It will just run the tests to see which functions can be overridden.  
@@ -77,13 +78,12 @@ pghostile.py user1 testdb -H 10.211.55.12
 Starting ... 
 
 [ * ] 1272 interesting functions have been identified
-[ * ] Creating test functions
 [ * ] Testing functions
-[ * ] Deleting test functions
+[ * ] 667 exploitable function calls have been tested
 [ * ] Creating exploit functions
-[ * ] Done! 913 functions have been created
+[ * ] Done!
 
-663 exploitable functions and params combinations have been tested!
+667 functions have been created
 The './out' folder contains the output
 ```
 

