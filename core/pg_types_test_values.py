@@ -134,8 +134,8 @@ PG_TYPES_TEST_VALUES = {
     1021: "array [1.1, 1.2]",
 
     # float8: double-precision floating point number, 8-byte storage
-    701: "1.1",
-    1022: "array [1.1, 1.2]",
+    701: ["1", "1.1"],
+    1022: ["array [1. 1]", "array [1.1, 1.2]"],
 
     # unknown: pseudo-type representing an undetermined type, @TODO check
     705: "1",
@@ -277,12 +277,12 @@ PG_TYPES_TEST_VALUES = {
     3770: "array [1, 2]",
 
     # jsonb: Binary JSON, @TODO check
-    3802: "'randstr'",
-    3807: "array ['randstr','randstr']",
+    3802: "'[true]'",
+    3807: "array ['[true]','[true]']",
 
     # jsonpath: JSON path, @TODO check
-    4072: "'randstr'",
-    4073: "array ['randstr','randstr']",
+    4072: "'[true]'",
+    4073: "array ['[true]','[true]']",
 
     # txid_snapshot: txid snapshot, @TODO check
     2970: "'randstr'",
@@ -351,10 +351,10 @@ PG_TYPES_TEST_VALUES = {
     1263: "1",
 
     # any: pseudo-type representing any type
-    2276: "1",
+    2276: ["1", "1.1", "'randstr'"],
 
     # anyarray: pseudo-type representing a polymorphic array type
-    2277: "array [1, 2]",
+    2277: ["array [1, 2]", "array [1.1, 2.1]", "array ['randstr', 'randstr']"],
 
     # void: pseudo-type for the result of a function with no real result, @TODO check
     2278: "1",
@@ -395,11 +395,11 @@ PG_TYPES_TEST_VALUES = {
     # anyrange: pseudo-type representing a range over a polymorphic base type, @TODO check
     3831: "1",
 
-    # anycompatible: pseudo-type representing a polymorphic common type, @TODO check
-    5077: "1",
+    # anycompatible: pseudo-type representing a polymorphic common type
+    5077: ["1", "1.1", "'randstr'"],
 
     # anycompatiblearray: pseudo-type representing an array of polymorphic common type elements
-    5078: "array [1, 2]",
+    5078: ["array [1, 2]", "array [1.1, 2.1]", "array ['randstr', 'randstr']"],
 
     # anycompatiblenonarray: pseudo-type representing a polymorphic common type that is not an array, @TODO check
     5079: "1",

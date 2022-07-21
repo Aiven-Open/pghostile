@@ -34,30 +34,41 @@ def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests
                 return
 
     if run_tests:
-        print("[ * ] Testing functions")
+        print("[ * ] Testing %s functions" % len(override_functions))
+        tested_queries = []
         for df in override_functions:
             try:
+                test_log.append(f"Testing {df}")
                 if df.run_test():
+                    test_log.append("OK")
                     exploitables.append(df)
+                    tested_queries.extend(df.tested_queries)
+                else:
+                    test_log.append(f"\n{df.test_failure_message}")
+                test_log.append("-" * 64)
             except Exception as e:
                 test_log.append(f"Exception testing function {df} {e}")
                 pass
+
         with open(os.path.join(out_dir, "exploitables.sql"), "w") as f:
-            f.write(";\n".join([f.test_query for f in exploitables]))
+            f.write("\n".join([f"{f};" for f in tested_queries]))
+
         if len(exploitables) > 0:
-            print("[ * ] %s exploitable function calls have been tested" % len(exploitables))
+            print("[ * ] %s exploitable functions found" % len(exploitables))
+            print("[ * ] %s function and parameters combinations run successfully" % len(tested_queries))
         else:
             print_err("No exploitable functions found during test")
             return
 
     if create_exploit:
-        print("[ * ] Creating exploit functions")
         created_functions = []
         if run_tests:
+            print("[ * ] Creating exploit functions")
             for df in exploitables:
                 df.create_exploit_function()
                 created_functions.append(df)
         else:
+            print("[ * ] Creating exploit functions from %s overriders" % len(override_functions))
             for df in override_functions:
                 try:
                     df.create_exploit_function()
@@ -67,7 +78,7 @@ def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests
 
         print("[ * ] Done!")
         with open(os.path.join(out_dir, "drop_functions.sql"), "w") as f:
-            f.write(";\n".join([f.drop_query for f in created_functions]))
+            f.write("\n".join([f"{f.drop_query};" for f in created_functions]))
 
     print_ok("\n%d functions have been created" % len(created_functions))
 
