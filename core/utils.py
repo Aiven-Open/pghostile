@@ -23,8 +23,8 @@ def convert_types(types):
     cmatrix = {
         # the followings are not for hacking but just to make things work
         # (ie 'internal' cannot be used as input for user-defined func)
-        2281: [21],  # internal -> int4
-        2275: [25],  # cstring -> text
+        2281: 21,  # internal -> int4
+        2275: 25,  # cstring -> text
     }
     cmatrix.update(get_convertion_matrix())
     conv_types = []
