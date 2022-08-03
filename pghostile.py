@@ -41,6 +41,7 @@ def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests
     if run_tests:
         print("[ * ] Testing %s functions" % len(override_functions))
         tested_queries = []
+        tested_queries_operator = []
         for df in override_functions:
             try:
                 test_log.append(f"Testing {df}")
@@ -48,6 +49,7 @@ def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests
                     test_log.append("OK")
                     exploitables.append(df)
                     tested_queries.extend(df.tested_queries)
+                    tested_queries_operator.extend(df.tested_queries_operator)
                 else:
                     test_log.append(f"\n{df.test_failure_message}")
                 test_log.append("-" * 64)
@@ -57,10 +59,13 @@ def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests
 
         with open(os.path.join(out_dir, "exploitables.sql"), "w") as f:
             f.write("\n".join([f"{f};" for f in tested_queries]))
+        with open(os.path.join(out_dir, "exploitables_operator.sql"), "w") as f:
+            f.write("\n".join([f"{f};" for f in tested_queries_operator]))
 
         if len(exploitables) > 0:
             print("[ * ] %s exploitable functions found" % len(exploitables))
             print("[ * ] %s function and parameters combinations run successfully" % len(tested_queries))
+            print("[ * ] %s operators call run successfully" % len(tested_queries_operator))
         else:
             print_err("No exploitable functions found during test")
             return
@@ -84,11 +89,12 @@ def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests
         print("[ * ] Done!")
         with open(os.path.join(out_dir, "drop_functions.sql"), "w") as f:
             for fnc in created_functions:
-                if fnc.operator and fnc.operator_created:
-                    f.write("%s;\n" % fnc.drop_query_operator)
+                if fnc.operator and fnc.operator.created:
+                    f.write("%s;\n" % fnc.operator.drop_query)
                 f.write("%s;\n" % fnc.drop_query)
 
     print_ok("\n%d functions have been created" % len(created_functions))
+    print_ok("%d queries can trigger the exploit" % (len(tested_queries) + len(tested_queries_operator)))
 
     if len(errors) > 0:
         print_warn("There were some errors creating functions. See errors.txt for details")
