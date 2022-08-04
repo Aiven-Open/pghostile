@@ -1,5 +1,5 @@
 [flake8]
-exclude =
+exclude = pg_types.py
 
 max-line-length = 127
 

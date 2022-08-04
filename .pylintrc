@@ -23,6 +23,11 @@ disable=
     too-many-instance-attributes,
     R0801,  # Similar lines in 2 files
     R0201,
+    R0913,
+    C0200,
+    C0201,
+    consider-using-f-string,
+    W0703,
     import-error
 
 [FORMAT]

@@ -94,6 +94,7 @@ def get_pg_type(oid):
     for t in PG_TYPES:
         if t['oid'] == str(oid):
             return t
+    return None
 
 
 def get_pg_types_by_category(cat):
@@ -119,7 +120,8 @@ def get_candidate_functions(db):
 
     argtypes_filter = [f"{oid} = any(p.proargtypes)" for oid in get_convertion_matrix().keys()]
     qry = """
-        SELECT p.oid as oid, n.nspname as ns, p.proname as name, p.pronargs as nargs, p.proargtypes as argtypes, p.prorettype as rettype
+        SELECT p.oid as oid, n.nspname as ns, p.proname as name, p.pronargs as nargs,
+        p.proargtypes as argtypes, p.prorettype as rettype
         FROM pg_catalog.pg_namespace n JOIN pg_catalog.pg_proc p ON p.pronamespace = n.oid
         WHERE p.prokind = 'f' and p.pronargs > 0 and n.nspname = '%s' and (
             %s

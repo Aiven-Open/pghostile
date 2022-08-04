@@ -26,7 +26,7 @@ class DBOperatorOverride:
 
         self.test_queries = []
         for pars in self.test_params_combinations:
-            self.test_queries.append("select %s %s %s" % (pars[0], self.name, pars[1]))
+            self.test_queries.append(f"select {pars[0]} {self.name} {pars[1]}")
 
     def delete(self):
         try:
@@ -46,6 +46,7 @@ class DBOperatorOverride:
             self.created = True
         except psycopg2.errors.Error:
             return False
+        return True
 
 
 class DBFunctionOverride:
