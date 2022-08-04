@@ -5,9 +5,9 @@ PYTHON_SOURCES=$(shell git ls-files "*.py")
 
 .PHONY: pylint
 pylint:
-	$(PYTHON) -m pylint --exit-zero --rcfile .pylintrc $(PYTHON_SOURCES)
+	$(PYTHON) -m pylint --rcfile .pylintrc $(PYTHON_SOURCES) --ignored-modules=psycopg2.errors
 
 .PHONY: flake8
 flake8:
-	$(PYTHON) -m flake8 --exit-zero --config .flake8 $(PYTHON_SOURCES)
+	$(PYTHON) -m flake8  --config .flake8 $(PYTHON_SOURCES)
 
