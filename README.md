@@ -8,10 +8,15 @@ It can be also used to test the security of the PostgreSQL extension. You can ru
 In PostgreSQL every function is identified by it's name plus the number/types of arguments (like in Java). If a function is defined to accept a numberic value and you define a function with the same name that accepts an integer, your function will be called if the input parameter is an integer and the original one will be called if the input is a float.  
 Considering that an unprivileged user can create functions in the public schema and that the public schema is part of the 'search_path', it's relatively easy to trick a superuser to run code from public instead of pg_catalog.  
 
-In a few words, pghostile searches pg_catalog for functions that can be overridden and creates a malicious wrapper of them in the public schema.  
+In a few words, pghostile searches pg_catalog for functions (and operators) that can be overridden and creates a malicious wrapper of them in the public schema. 
 
-Currently, it can identify ~900 functions/parameters combinations that can lead to privilege escalation. To give an example, the list below contains some of these functions:  
+Currently, it can identify ~1000 calls that can lead to privilege escalation. To give an example, the list below contains some of them:  
 ```SQL
+select 1.1 * 1;
+select 1 = 1.1;
+select 1.1 / 1;
+select array [1, 2] = array [1, 2];
+
 select sha256('randstr');
 select unnest(array [1, 2]);
 select array_replace(array [1, 2], 1, 1);
@@ -72,19 +77,22 @@ The -p option forces the DB's password request even if the PGPASSWORD environmen
 
 ### Example
 ```
-pghostile.py user1 testdb -H 10.211.55.12
+pghostile.py user1 testdb -H 10.0.0.100
 ```
 ```
 Starting ... 
 
 [ * ] 1272 interesting functions have been identified
+[ * ] Detecting operators
 [ * ] Testing 1697 functions
-[ * ] 895 exploitable functions found
-[ * ] 908 function and parameters combinations run successfully
+[ * ] 907 exploitable functions found
+[ * ] 1005 function and parameters combinations run successfully
+[ * ] 70 operators call run successfully
 [ * ] Creating exploit functions
 [ * ] Done!
 
-895 functions have been created
+907 functions have been created
+1075 queries can trigger the exploit
 The './out' folder contains the output
 ```
 
@@ -106,3 +114,6 @@ SELECT rolsuper FROM pg_roles where rolname='user1'
 ```sql
 select * from pghostile.triggers
 ```
+
+## Trademarks
+The terms Postgres and PostgreSQL are registered trademarks of the PostgreSQL Community Association of Canada.

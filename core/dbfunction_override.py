@@ -36,6 +36,10 @@ class DBOperatorOverride:
             pass
 
     def create(self):
+        # @TODO
+        # For now, we just skip operator that deal with text
+        if self.params_type_name[0] == "text" or self.params_type_name[0] == "text":
+            return False
         self.delete()
         try:
             self.db.query(self.create_query)
