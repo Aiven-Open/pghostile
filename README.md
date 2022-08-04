@@ -1,5 +1,5 @@
 # PGHOSTILE
-Pghostile can make PostgreSQL an hostile environment for superusers and a nice playground for attackers.  
+Pghostile can make PostgreSQL® an hostile environment for superusers and a nice playground for attackers.  
 Pghostile is an automated tool for overriding "system" functions (the ones from the 'pg_catalog' schema) allowing an attacker to elevate privileges if/when these functions are called by a superuser.  
 
 It can be also used to test the security of the PostgreSQL extension. You can run pghostile to create the "exploit functions" and then run the extension's unit tests and see if you get superuser power after that.
