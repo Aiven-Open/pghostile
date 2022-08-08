@@ -49,7 +49,7 @@ def convert_rettype(t):
 def get_convertion_matrix():
     return {
         701: [1700, 23],  # float8 -> numeric and int
-        1700: [23],  # numeric -> int4
+        1700: [23],  # numeric -> int4  @TODO probably numeric can be split into int and float
         2276: [23, 700, 25],  # any -> integer or float or text
         2283: [23, 700, 25],  # anyelement -> integer or float or text
         5077: [23, 700, 25],  # anycompatible -> integer or float or text
