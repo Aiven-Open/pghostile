@@ -1,16 +1,18 @@
 # PGHOSTILE
-Pghostile can make PostgreSQL® an hostile environment for superusers and a nice playground for attackers.  
-Pghostile is an automated tool for overriding "system" functions (the ones from the 'pg_catalog' schema) allowing an attacker to elevate privileges if/when these functions are called by a superuser.  
+Pghostile can make PostgreSQL® an hostile environment for superusers and a nice playground for attackers.
+Pghostile is an automated tool for overriding "system" functions (the ones from the 'pg_catalog' schema) allowing an attacker to elevate privileges if/when these functions are called by a superuser.
 
 It can be also used to test the security of the PostgreSQL extension. You can run pghostile to create the "exploit functions" and then run the extension's unit tests and see if you get superuser power after that.
 
+See your blog post about pghostile and PostgreSQL extension security: [Aiven's Blog](https://aiven.io/blog/aiven-security-agent-for-postgresql).
+
 ## How it works
-In PostgreSQL every function is identified by it's name plus the number/types of arguments (like in Java). If a function is defined to accept a numberic value and you define a function with the same name that accepts an integer, your function will be called if the input parameter is an integer and the original one will be called if the input is a float.  
-Considering that an unprivileged user can create functions in the public schema and that the public schema is part of the 'search_path', it's relatively easy to trick a superuser to run code from public instead of pg_catalog.  
+In PostgreSQL every function is identified by it's name plus the number/types of arguments (like in Java). If a function is defined to accept a numberic value and you define a function with the same name that accepts an integer, your function will be called if the input parameter is an integer and the original one will be called if the input is a float.
+Considering that an unprivileged user can create functions in the public schema and that the public schema is part of the 'search_path', it's relatively easy to trick a superuser to run code from public instead of pg_catalog.
 
-In a few words, pghostile searches pg_catalog for functions (and operators) that can be overridden and creates a malicious wrapper of them in the public schema. 
+In a few words, pghostile searches pg_catalog for functions (and operators) that can be overridden and creates a malicious wrapper of them in the public schema.
 
-Currently, it can identify ~1000 calls that can lead to privilege escalation. To give an example, the list below contains some of them:  
+Currently, it can identify ~1000 calls that can lead to privilege escalation. To give an example, the list below contains some of them:
 ```SQL
 select 1.1 * 1;
 select 1 = 1.1;
@@ -68,19 +70,19 @@ optional arguments:
   -O, --no-overwrite    Stop execution if at least one exploit function already exists
 ```
 
-With the -X option you can disable the actual exploit creation. It will just run the tests to see which functions can be overridden.  
-With the -T option you can disable the tests and just create the exploit functions.  
-The -x option allows you to specify what SQL command(s) should be used in your exploit. By default it's ```ALTER USER <db_username> WITH SUPERUSER;```.  
-The -s option disables the "stealth mode". In stealth mode the wrapping functions will call the original function from pg_catalog, in this way the superuser won't see any anomaly when calling a wrapped function. There are also less chances to break execution flows that could bring us to other vulnerable points.  
-The -t option enables the tracking of the execution of the exploit functions. It means that every successfull call of an exploit function is logged into a table of the current DB (pghostile.triggers). It's useful for extension analisys.  
-The -p option forces the DB's password request even if the PGPASSWORD environment variable is set.  
+With the -X option you can disable the actual exploit creation. It will just run the tests to see which functions can be overridden.
+With the -T option you can disable the tests and just create the exploit functions.
+The -x option allows you to specify what SQL command(s) should be used in your exploit. By default it's ```ALTER USER <db_username> WITH SUPERUSER;```.
+The -s option disables the "stealth mode". In stealth mode the wrapping functions will call the original function from pg_catalog, in this way the superuser won't see any anomaly when calling a wrapped function. There are also less chances to break execution flows that could bring us to other vulnerable points.
+The -t option enables the tracking of the execution of the exploit functions. It means that every successfull call of an exploit function is logged into a table of the current DB (pghostile.triggers). It's useful for extension analisys.
+The -p option forces the DB's password request even if the PGPASSWORD environment variable is set.
 
 ### Example
 ```
 pghostile.py user1 testdb -H 10.0.0.100
 ```
 ```
-Starting ... 
+Starting ...
 
 [ * ] 1272 interesting functions have been identified
 [ * ] Detecting operators
