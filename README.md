@@ -4,7 +4,7 @@ Pghostile is an automated tool for overriding "system" functions (the ones from 
 
 It can be also used to test the security of the PostgreSQL extension. You can run pghostile to create the "exploit functions" and then run the extension's unit tests and see if you get superuser power after that.
 
-See your blog post about pghostile and PostgreSQL extension security: [Aiven's Blog](https://aiven.io/blog/aiven-security-agent-for-postgresql).
+See our blog post about pghostile and PostgreSQL extension security: [Aiven's Blog](https://aiven.io/blog/aiven-security-agent-for-postgresql).
 
 ## How it works
 In PostgreSQL every function is identified by it's name plus the number/types of arguments (like in Java). If a function is defined to accept a numberic value and you define a function with the same name that accepts an integer, your function will be called if the input parameter is an integer and the original one will be called if the input is a float.
