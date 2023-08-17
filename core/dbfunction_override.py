@@ -170,7 +170,7 @@ class DBFunctionOverride:
         try:
             self.db.query(self.drop_query)
         except psycopg2.errors.Error as e:
-            raise Exception("Database error while deleting test function: %s" % e)
+            raise Exception("Database error while deleting test function: %s" % e)  # pylint: disable=broad-exception-raised
 
         if len(self.tested_queries) == 0:
             self.test_failure_message = "No valid queries found"
@@ -191,7 +191,7 @@ class DBFunctionOverride:
             if self.operator:
                 self.operator.create()
         except psycopg2.errors.Error as e:
-            raise Exception("Database error while creating exploit function: %s" % e)
+            raise Exception("Database error while creating exploit function: %s" % e)  # pylint: disable=broad-exception-raised
 
     def get_oid(self):
         if self.oid:
