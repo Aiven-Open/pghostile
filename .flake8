@@ -20,3 +20,5 @@ ignore =
   W504,
   # blank line at end of file
   W391,
+  # Raising too general exception: Exception (broad-exception-raised)
+  W0719,
