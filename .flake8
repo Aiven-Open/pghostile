@@ -4,11 +4,19 @@ exclude = pg_types.py
 max-line-length = 127
 
 ignore =
-  E121,  # continuation line under-indented for hanging indent (conflicts with our yapf style)
-  E123,  # Closing brackets indent
-  E126,  # Hanging indents
-  E129,  # Visual indent
-  E722,  # bare-except
-  W503,  # Breaks & binary operators
-  W504,  # line break after binary operator (conflicts with our yapf style)
-  W391,  # blank line at end of file#
+  # continuation line under-indented for hanging indent (conflicts with our yapf style)
+  E121,
+  # Closing brackets indent
+  E123,
+  # Hanging indents
+  E126,
+  # Visual indent
+  E129,
+  # bare-except
+  E722,
+  # Breaks & binary operators
+  W503,
+  # line break after binary operator (conflicts with our yapf style)
+  W504,
+  # blank line at end of file
+  W391,
